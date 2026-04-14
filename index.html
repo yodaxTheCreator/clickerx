@@ -27,7 +27,7 @@ button {
   width: 250px;
 }
 
-/* imagens */
+/* IMAGENS DVD */
 .bg {
   position: fixed;
   width: 160px;
@@ -106,7 +106,7 @@ function clicar() {
 function upgradeClique() {
   if (moedas >= custoClique) {
     moedas -= custoClique;
-    valorClique += 1;
+    valorClique++;
     custoClique = Math.floor(custoClique * 1.5);
     atualizar();
   }
@@ -115,7 +115,7 @@ function upgradeClique() {
 function upgradeAuto() {
   if (moedas >= custoAuto) {
     moedas -= custoAuto;
-    auto += 1;
+    auto++;
     custoAuto = Math.floor(custoAuto * 1.7);
     atualizar();
   }
@@ -145,7 +145,7 @@ function verificarNivel() {
     nivel++;
     xpMax = Math.floor(xpMax * 1.5);
 
-    valorClique += 1;
+    valorClique++;
     moedas += 50;
   }
 }
@@ -166,35 +166,62 @@ function atualizar() {
 
 atualizar();
 
-/* ===== ANIMAÇÃO DVD ===== */
-window.onload = function () {
+/* ===== SAVE ===== */
+setInterval(() => {
+  localStorage.setItem("save", JSON.stringify({
+    moedas, valorClique, auto, criticoChance,
+    custoClique, custoAuto, custoCritico,
+    xp, nivel, xpMax
+  }));
+}, 2000);
 
-  let imgs = [
-    { el: document.getElementById("img1"), x: 100, y: 100, dx: 2, dy: 2 },
-    { el: document.getElementById("img2"), x: 300, y: 200, dx: -2, dy: 2 },
-    { el: document.getElementById("img3"), x: 500, y: 150, dx: 2, dy: -2 }
-  ];
+/* ===== LOAD ===== */
+window.onload = () => {
+  let save = JSON.parse(localStorage.getItem("save"));
 
-  function animar() {
-    let w = window.innerWidth;
-    let h = window.innerHeight;
-
-    imgs.forEach(i => {
-      i.x += i.dx;
-      i.y += i.dy;
-
-      if (i.x <= 0 || i.x >= w - 160) i.dx *= -1;
-      if (i.y <= 0 || i.y >= h - 160) i.dy *= -1;
-
-      i.el.style.left = i.x + "px";
-      i.el.style.top = i.y + "px";
-    });
-
-    requestAnimationFrame(animar);
+  if (save) {
+    moedas = save.moedas;
+    valorClique = save.valorClique;
+    auto = save.auto;
+    criticoChance = save.criticoChance;
+    custoClique = save.custoClique;
+    custoAuto = save.custoAuto;
+    custoCritico = save.custoCritico;
+    xp = save.xp;
+    nivel = save.nivel;
+    xpMax = save.xpMax;
   }
 
-  animar();
+  atualizar();
 };
+
+/* ===== ANIMAÇÃO DVD (CORRIGIDA) ===== */
+
+let imgs = [
+  { el: document.getElementById("img1"), x: 100, y: 100, dx: 2, dy: 2 },
+  { el: document.getElementById("img2"), x: 300, y: 200, dx: -2, dy: 2 },
+  { el: document.getElementById("img3"), x: 500, y: 150, dx: 2, dy: -2 }
+];
+
+function animar() {
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+
+  imgs.forEach(i => {
+    i.x += i.dx;
+    i.y += i.dy;
+
+    if (i.x <= 0 || i.x >= w - 160) i.dx *= -1;
+    if (i.y <= 0 || i.y >= h - 160) i.dy *= -1;
+
+    i.el.style.left = i.x + "px";
+    i.el.style.top = i.y + "px";
+  });
+
+  requestAnimationFrame(animar);
+}
+
+animar();
 
 </script>
 

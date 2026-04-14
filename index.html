@@ -1,147 +1,336 @@
-<script>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Clicker FIXED PRO</title>
 
-let moedas = 0;
-let valorClique = 1;
-let auto = 0;
-let criticoChance = 0.1;
-
-let custoClique = 10;
-let custoAuto = 50;
-let custoCritico = 100;
-
-let xp = 0;
-let nivel = 1;
-let xpMax = 100;
-
-/* ===== JOGO ===== */
-function clicar() {
-  let ganho = valorClique;
-
-  if (Math.random() < criticoChance) {
-    ganho *= 2;
-  }
-
-  moedas += ganho;
-  xp += ganho;
-
-  verificarNivel();
-  atualizar();
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#0b0b0b;
+color:white;
+overflow:hidden;
+text-align:center;
 }
 
-function upgradeClique() {
-  if (moedas >= custoClique) {
-    moedas -= custoClique;
-    valorClique++;
-    custoClique = Math.floor(custoClique * 1.5);
-    atualizar();
-  }
+/* ===== HUD ===== */
+.panel{
+display:inline-block;
+background:#1f1f1f;
+padding:14px;
+margin:10px;
+border-radius:14px;
+width:340px;
+box-shadow:0 0 15px black;
 }
 
-function upgradeAuto() {
-  if (moedas >= custoAuto) {
-    moedas -= custoAuto;
-    auto++;
-    custoAuto = Math.floor(custoAuto * 1.7);
-    atualizar();
-  }
+/* ===== BUTTONS ===== */
+button{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-weight:bold;
 }
 
-function upgradeCritico() {
-  if (moedas >= custoCritico) {
-    moedas -= custoCritico;
-    criticoChance += 0.05;
-    custoCritico = Math.floor(custoCritico * 2);
-    atualizar();
-  }
+.click{background:#ff9800;}
+.up{background:#2196f3;color:white;}
+.shop{background:#4caf50;color:white;}
+.red{background:#e53935;color:white;}
+
+/* ===== PARTICLES ===== */
+.particle{
+position:fixed;
+color:gold;
+font-weight:bold;
+animation:float 1s forwards;
+pointer-events:none;
 }
 
-function verificarNivel() {
-  if (xp >= xpMax) {
-    xp -= xpMax;
-    nivel++;
-    xpMax = Math.floor(xpMax * 1.5);
-    valorClique++;
-    moedas += 50;
-  }
+@keyframes float{
+0%{transform:translateY(0);opacity:1}
+100%{transform:translateY(-120px);opacity:0}
 }
 
-function atualizar() {
-  document.getElementById("moedas").innerText = "Moedas: " + moedas;
-  document.getElementById("valor").innerText = "Clique: +" + valorClique;
-  document.getElementById("critico").innerText = "Crítico: " + Math.floor(criticoChance * 100) + "%";
+/* ===== CURSOR SKINS ===== */
+body.cursor-hand{cursor:pointer;}
+body.cursor-cross{cursor:crosshair;}
+body.cursor-default{cursor:default;}
 
-  document.getElementById("custoClique").innerText = "Custo: " + custoClique;
-  document.getElementById("custoAuto").innerText = "Custo: " + custoAuto;
-  document.getElementById("custoCritico").innerText = "Custo: " + custoCritico;
-
-  document.getElementById("xp").innerText = "XP: " + xp + " / " + xpMax;
-  document.getElementById("nivel").innerText = "Nível: " + nivel;
+/* ===== CATS DVD FIX REAL ===== */
+.cat{
+position:fixed;
+width:120px;
+opacity:0.25;
+pointer-events:none;
+z-index:0;
 }
+</style>
+</head>
 
-/* ===== AUTO CLICK ===== */
-setInterval(() => {
-  moedas += auto;
-  xp += auto;
-  verificarNivel();
-  atualizar();
-}, 1000);
+<body>
 
-/* ===== SAVE ===== */
-setInterval(() => {
-  localStorage.setItem("save", JSON.stringify({
-    moedas, valorClique, auto, criticoChance,
-    custoClique, custoAuto, custoCritico,
-    xp, nivel, xpMax
-  }));
-}, 2000);
+<!-- ===== CATS (AGORA VÃO APARECER) ===== -->
+<img id="cat1" class="cat" src="https://i.imgur.com/4AiXzf8.jpeg">
+<img id="cat2" class="cat" src="https://i.imgur.com/4AiXzf8.jpeg">
+<img id="cat3" class="cat" src="https://i.imgur.com/4AiXzf8.jpeg">
 
-/* ===== LOAD ===== */
-window.onload = () => {
+<h1>🎮 ULTIMATE CLICKER FIXED PRO</h1>
 
-  let save = JSON.parse(localStorage.getItem("save"));
+<div class="panel">
+<h2 id="coins">Coins: 0</h2>
+<h3 id="level">Level: 1</h3>
+<h3 id="xp">XP: 0 / 100</h3>
+<h3 id="stats"></h3>
+<h3 id="prestige">Prestige: 0</h3>
+</div>
 
-  if (save) {
-    moedas = save.moedas;
-    valorClique = save.valorClique;
-    auto = save.auto;
-    criticoChance = save.criticoChance;
-    custoClique = save.custoClique;
-    custoAuto = save.custoAuto;
-    custoCritico = save.custoCritico;
-    xp = save.xp;
-    nivel = save.nivel;
-    xpMax = save.xpMax;
-  }
+<div class="panel">
+<button class="click" onclick="clickGame(event)">CLICK</button>
+</div>
 
-  atualizar();
+<div class="panel">
+<h3>UPGRADES</h3>
+<button class="up" onclick="buyClick()">Click +1 (10)</button>
+<button class="up" onclick="buyAuto()">Auto (50)</button>
+<button class="up" onclick="buyCrit()">Crit (100)</button>
+</div>
 
-  /* ===== ANIMAÇÃO DVD (AGORA GARANTIDA) ===== */
+<div class="panel">
+<h3>SHOP</h3>
+<button class="shop" onclick="buySkin('gold')">Gold Skin (100)</button>
+<button class="shop" onclick="buySkin('neon')">Neon Skin (250)</button>
+<button class="shop" onclick="equipSkin('gold')">Equip Gold</button>
+<button class="shop" onclick="equipSkin('neon')">Equip Neon</button>
+</div>
 
-  let imgs = [
-    { el: document.getElementById("img1"), x: 100, y: 100, dx: 2, dy: 2 },
-    { el: document.getElementById("img2"), x: 300, y: 200, dx: -2, dy: 2 },
-    { el: document.getElementById("img3"), x: 500, y: 150, dx: 2, dy: -2 }
-  ];
+<div class="panel">
+<h3>CURSOR</h3>
+<button class="shop" onclick="setCursor('default')">Default</button>
+<button class="shop" onclick="setCursor('hand')">Hand</button>
+<button class="shop" onclick="setCursor('cross')">Cross</button>
+</div>
 
-  function animar() {
-    let w = window.innerWidth;
-    let h = window.innerHeight;
+<div class="panel">
+<h3>🏆 RANKING</h3>
+<div id="rank">Loading...</div>
+</div>
 
-    imgs.forEach(i => {
-      i.x += i.dx;
-      i.y += i.dy;
+<script type="module">
 
-      if (i.x <= 0 || i.x >= w - 160) i.dx *= -1;
-      if (i.y <= 0 || i.y >= h - 160) i.dy *= -1;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
-      i.el.style.left = i.x + "px";
-      i.el.style.top = i.y + "px";
-    });
-
-    requestAnimationFrame(animar);
-  }
-
-  animar();
+const firebaseConfig = {
+  apiKey: "AIzaSyA8pMfTwb38FzbT1Fyi-3HVw9SvBHPr_pc",
+  authDomain: "clickerx-fea00.firebaseapp.com",
+  projectId: "clickerx-fea00",
+  storageBucket: "clickerx-fea00.firebasestorage.app",
+  messagingSenderId: "1058324120487",
+  appId: "1:1058324120487:web:fabdeca94b66eede6f2c82"
 };
 
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ===== PLAYER ===== */
+let name = localStorage.getItem("name");
+if(!name){
+name = prompt("Seu nome:");
+if(!name) name="Player";
+localStorage.setItem("name",name);
+}
+
+/* ===== VARS ===== */
+let coins=0;
+let click=1;
+let auto=0;
+let crit=0.1;
+let level=1;
+let xp=0;
+let xpMax=100;
+let prestige=0;
+let skin="default";
+
+/* ===== SOUND FIX ===== */
+const clickSound = new Audio("https://www.soundjay.com/buttons/sounds/button-16.mp3");
+
+/* desbloqueio som (IMPORTANTE) */
+document.body.addEventListener("click",()=>{
+clickSound.play().catch(()=>{});
+},{once:true});
+
+/* ===== CLICK ===== */
+window.clickGame=function(e){
+
+let gain=click;
+if(Math.random()<crit) gain*=2;
+
+coins+=gain;
+xp+=gain;
+
+clickSound.currentTime=0;
+clickSound.play().catch(()=>{});
+
+particle(e.clientX,e.clientY,"+"+gain);
+
+levelUp();
+update();
+}
+
+/* ===== PARTICLE ===== */
+function particle(x,y,t){
+let p=document.createElement("div");
+p.className="particle";
+p.innerText=t;
+p.style.left=x+"px";
+p.style.top=y+"px";
+document.body.appendChild(p);
+setTimeout(()=>p.remove(),1000);
+}
+
+/* ===== UPGRADES ===== */
+window.buyClick=function(){
+if(coins>=10){coins-=10;click++;update();}
+}
+
+window.buyAuto=function(){
+if(coins>=50){coins-=50;auto++;update();}
+}
+
+window.buyCrit=function(){
+if(coins>=100){coins-=100;crit+=0.05;update();}
+}
+
+/* ===== LEVEL ===== */
+function levelUp(){
+if(xp>=xpMax){
+xp-=xpMax;
+level++;
+xpMax*=1.4;
+click++;
+coins+=20;
+}
+}
+
+/* ===== SKINS FIX ===== */
+window.buySkin=function(type){
+if(type==="gold"&&coins>=100){coins-=100;skin="gold";}
+if(type==="neon"&&coins>=250){coins-=250;skin="neon";}
+update();
+}
+
+window.equipSkin=function(type){
+skin=type;
+document.body.style.filter =
+type==="gold" ? "hue-rotate(40deg)" :
+type==="neon" ? "hue-rotate(140deg) brightness(1.2)" :
+"none";
+}
+
+/* ===== CURSOR FIX ===== */
+window.setCursor=function(t){
+document.body.classList.remove("cursor-hand","cursor-cross","cursor-default");
+
+if(t==="hand") document.body.classList.add("cursor-hand");
+if(t==="cross") document.body.classList.add("cursor-cross");
+if(t==="default") document.body.classList.add("cursor-default");
+}
+
+/* ===== UPDATE ===== */
+function update(){
+document.getElementById("coins").innerText="Coins: "+coins;
+document.getElementById("level").innerText="Level: "+level;
+document.getElementById("xp").innerText="XP: "+xp+" / "+xpMax;
+document.getElementById("stats").innerText=
+`Click:${click} | Auto:${auto} | Crit:${Math.floor(crit*100)}%`;
+document.getElementById("prestige").innerText="Prestige: "+prestige;
+}
+
+/* ===== AUTO ===== */
+setInterval(()=>{
+coins+=auto;
+xp+=auto;
+levelUp();
+update();
+},1000);
+
+/* ===== PRESTIGE FIX ===== */
+window.prestige=function(){
+if(level>=10){
+prestige++;
+coins=0;
+click=1;
+auto=0;
+crit=0.1;
+level=1;
+xp=0;
+xpMax=100;
+update();
+}
+}
+
+/* ===== FIREBASE SAVE ===== */
+async function save(){
+await set(ref(db,"players/"+name),{
+name,coins,level
+});
+}
+setInterval(save,3000);
+
+/* ===== RANKING FIX ===== */
+async function loadRank(){
+
+const snap = await get(child(ref(db),"players"));
+if(!snap.exists()){
+document.getElementById("rank").innerText="No data";
+return;
+}
+
+let data = snap.val();
+let list = Object.values(data);
+
+list.sort((a,b)=>b.coins-a.coins);
+list = list.slice(0,10);
+
+let html="";
+list.forEach((p,i)=>{
+html+=`${i+1}. ${p.name} - ${p.coins}<br>`;
+});
+
+document.getElementById("rank").innerHTML=html;
+}
+
+setInterval(loadRank,3000);
+
+/* ===== DVD CATS REAL MOVEMENT ===== */
+let cats=[
+{id:"cat1",x:50,y:50,vx:2,vy:2},
+{id:"cat2",x:200,y:150,vx:-2,vy:2},
+{id:"cat3",x:300,y:80,vx:2,vy:-2}
+];
+
+function moveCats(){
+cats.forEach(c=>{
+c.x+=c.vx;
+c.y+=c.vy;
+
+if(c.x<=0||c.x>=window.innerWidth-120) c.vx*=-1;
+if(c.y<=0||c.y>=window.innerHeight-120) c.vy*=-1;
+
+let el=document.getElementById(c.id);
+el.style.left=c.x+"px";
+el.style.top=c.y+"px";
+});
+}
+
+setInterval(moveCats,16);
+
+window.onload=update;
+
 </script>
+
+</body>
+</html>

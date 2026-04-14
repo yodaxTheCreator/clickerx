@@ -1,147 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Clicker Pro Game</title>
+
+<style>
+body {
+  margin: 0;
+  background: #0f0f0f;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* BOTÕES */
+button {
+  padding: 10px 14px;
+  margin: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* CAIXAS */
+.box {
+  display: inline-block;
+  border: 1px solid #444;
+  padding: 10px;
+  margin: 10px;
+  width: 270px;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+
+/* FUNDO */
+.bg {
+  position: fixed;
+  width: 140px;
+  opacity: 0.3;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* PARTÍCULAS */
+.particle {
+  position: fixed;
+  color: gold;
+  font-size: 16px;
+  pointer-events: none;
+  animation: floatUp 1s forwards;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-80px); opacity: 0; }
+}
+
+/* SKINS BOTÃO */
+.gold { background: gold; color: black; }
+.neon { background: #00ffd0; color: black; box-shadow: 0 0 10px #00ffd0; }
+
+/* CURSOR SKINS */
+.cursor-default { cursor: default; }
+.cursor-hand { cursor: pointer; }
+.cursor-cross { cursor: crosshair; }
+</style>
+</head>
+
+<body class="cursor-default">
+
+<img src="img1.jpeg" class="bg" id="bg1">
+<img src="img2.jpeg" class="bg" id="bg2">
+<img src="img3.jpeg" class="bg" id="bg3">
+
+<h1>⚡ Clicker Pro</h1>
+
+<div class="box">
+  <h2 id="coins">Moedas: 0</h2>
+  <h3 id="level">Nível: 1</h3>
+  <h3 id="xp">XP: 0 / 100</h3>
+</div>
+
+<div class="box">
+  <h3 id="click">Clique: +1</h3>
+  <h3 id="crit">Crítico: 10%</h3>
+  <button onclick="clickGame(event)">CLICAR</button>
+</div>
+
+<div class="box">
+  <h3>Upgrades</h3>
+
+  <button onclick="upClick()">+ Clique (10💰)</button>
+  <button onclick="upAuto()">Auto Click (50💰)</button>
+  <button onclick="upCrit()">Crítico (100💰)</button>
+
+  <p id="costs"></p>
+</div>
+
+<div class="box">
+  <h3>🏪 Loja de Skins</h3>
+
+  <button onclick="buySkin('default')">Normal (0)</button>
+  <button onclick="buySkin('gold')">Gold (100)</button>
+  <button onclick="buySkin('neon')">Neon (250)</button>
+
+  <button onclick="setCursor('default')">Cursor Normal</button>
+  <button onclick="setCursor('hand')">Cursor Mão</button>
+  <button onclick="setCursor('cross')">Cursor Mira</button>
+
+  <p id="skinText">Skin: Normal</p>
+</div>
+
 <script>
 
-let moedas = 0;
-let valorClique = 1;
+/* ===== VARIÁVEIS ===== */
+let coins = 0;
+let click = 1;
 let auto = 0;
-let criticoChance = 0.1;
+let crit = 0.1;
 
-let custoClique = 10;
-let custoAuto = 50;
-let custoCritico = 100;
-
+let level = 1;
 let xp = 0;
-let nivel = 1;
 let xpMax = 100;
 
-/* ===== JOGO ===== */
-function clicar() {
-  let ganho = valorClique;
+let skin = "default";
 
-  if (Math.random() < criticoChance) {
-    ganho *= 2;
-  }
+/* ===== PREÇOS ===== */
+let priceClick = 10;
+let priceAuto = 50;
+let priceCrit = 100;
 
-  moedas += ganho;
-  xp += ganho;
+/* ===== CLIQUE ===== */
+function clickGame(e) {
+  let gain = click;
 
-  verificarNivel();
-  atualizar();
+  if (Math.random() < crit) gain *= 2;
+
+  coins += gain;
+  xp += gain;
+
+  particle(e.clientX, e.clientY, "+" + gain);
+
+  levelUp();
+  update();
 }
 
-function upgradeClique() {
-  if (moedas >= custoClique) {
-    moedas -= custoClique;
-    valorClique++;
-    custoClique = Math.floor(custoClique * 1.5);
-    atualizar();
+/* ===== PARTÍCULAS ===== */
+function particle(x, y, text) {
+  let p = document.createElement("div");
+  p.className = "particle";
+  p.innerText = text;
+  p.style.left = x + "px";
+  p.style.top = y + "px";
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 1000);
+}
+
+/* ===== UPGRADES ===== */
+function upClick(){
+  if(coins >= priceClick){
+    coins -= priceClick;
+    click++;
+    priceClick = Math.floor(priceClick * 1.5);
+    update();
   }
 }
 
-function upgradeAuto() {
-  if (moedas >= custoAuto) {
-    moedas -= custoAuto;
+function upAuto(){
+  if(coins >= priceAuto){
+    coins -= priceAuto;
     auto++;
-    custoAuto = Math.floor(custoAuto * 1.7);
-    atualizar();
+    priceAuto = Math.floor(priceAuto * 1.7);
+    update();
   }
 }
 
-function upgradeCritico() {
-  if (moedas >= custoCritico) {
-    moedas -= custoCritico;
-    criticoChance += 0.05;
-    custoCritico = Math.floor(custoCritico * 2);
-    atualizar();
+function upCrit(){
+  if(coins >= priceCrit){
+    coins -= priceCrit;
+    crit += 0.05;
+    priceCrit = Math.floor(priceCrit * 2);
+    update();
   }
 }
 
-function verificarNivel() {
-  if (xp >= xpMax) {
+/* ===== LEVEL ===== */
+function levelUp(){
+  if(xp >= xpMax){
     xp -= xpMax;
-    nivel++;
-    xpMax = Math.floor(xpMax * 1.5);
-    valorClique++;
-    moedas += 50;
+    level++;
+    xpMax = Math.floor(xpMax * 1.4);
+    click++;
+    coins += 20;
   }
 }
 
-function atualizar() {
-  document.getElementById("moedas").innerText = "Moedas: " + moedas;
-  document.getElementById("valor").innerText = "Clique: +" + valorClique;
-  document.getElementById("critico").innerText = "Crítico: " + Math.floor(criticoChance * 100) + "%";
+/* ===== LOJA SKIN ===== */
+function buySkin(type){
+  if(type==="gold" && coins>=100){
+    coins-=100;
+    skin="gold";
+  }
 
-  document.getElementById("custoClique").innerText = "Custo: " + custoClique;
-  document.getElementById("custoAuto").innerText = "Custo: " + custoAuto;
-  document.getElementById("custoCritico").innerText = "Custo: " + custoCritico;
+  if(type==="neon" && coins>=250){
+    coins-=250;
+    skin="neon";
+  }
 
-  document.getElementById("xp").innerText = "XP: " + xp + " / " + xpMax;
-  document.getElementById("nivel").innerText = "Nível: " + nivel;
+  if(type==="default"){
+    skin="default";
+  }
+
+  applySkin();
+  update();
+}
+
+/* ===== CURSOR SKIN ===== */
+function setCursor(type){
+  document.body.classList.remove("cursor-default","cursor-hand","cursor-cross");
+
+  if(type==="default") document.body.classList.add("cursor-default");
+  if(type==="hand") document.body.classList.add("cursor-hand");
+  if(type==="cross") document.body.classList.add("cursor-cross");
+}
+
+/* ===== APLICAR SKIN ===== */
+function applySkin(){
+  document.querySelectorAll("button").forEach(b=>{
+    b.classList.remove("gold","neon");
+
+    if(skin==="gold") b.classList.add("gold");
+    if(skin==="neon") b.classList.add("neon");
+  });
+
+  document.getElementById("skinText").innerText =
+    "Skin: " + skin;
 }
 
 /* ===== AUTO CLICK ===== */
-setInterval(() => {
-  moedas += auto;
+setInterval(()=>{
+  coins += auto;
   xp += auto;
-  verificarNivel();
-  atualizar();
-}, 1000);
+  levelUp();
+  update();
+},1000);
+
+/* ===== UPDATE ===== */
+function update(){
+  document.getElementById("coins").innerText = "Moedas: " + coins;
+  document.getElementById("click").innerText = "Clique: +" + click;
+  document.getElementById("crit").innerText = "Crítico: " + Math.floor(crit*100) + "%";
+
+  document.getElementById("costs").innerText =
+    `Clique:${priceClick} | Auto:${priceAuto} | Crit:${priceCrit}`;
+
+  document.getElementById("level").innerText = "Nível: " + level;
+  document.getElementById("xp").innerText = "XP: " + xp + " / " + xpMax;
+}
 
 /* ===== SAVE ===== */
-setInterval(() => {
-  localStorage.setItem("save", JSON.stringify({
-    moedas, valorClique, auto, criticoChance,
-    custoClique, custoAuto, custoCritico,
-    xp, nivel, xpMax
+setInterval(()=>{
+  localStorage.setItem("save",JSON.stringify({
+    coins,click,auto,crit,level,xp,xpMax,
+    skin,priceClick,priceAuto,priceCrit
   }));
-}, 2000);
+},2000);
 
 /* ===== LOAD ===== */
-window.onload = () => {
+window.onload=()=>{
 
-  let save = JSON.parse(localStorage.getItem("save"));
+  let s=JSON.parse(localStorage.getItem("save"));
 
-  if (save) {
-    moedas = save.moedas;
-    valorClique = save.valorClique;
-    auto = save.auto;
-    criticoChance = save.criticoChance;
-    custoClique = save.custoClique;
-    custoAuto = save.custoAuto;
-    custoCritico = save.custoCritico;
-    xp = save.xp;
-    nivel = save.nivel;
-    xpMax = save.xpMax;
+  if(s){
+    coins=s.coins??0;
+    click=s.click??1;
+    auto=s.auto??0;
+    crit=s.crit??0.1;
+    level=s.level??1;
+    xp=s.xp??0;
+    xpMax=s.xpMax??100;
+
+    skin=s.skin??"default";
+
+    priceClick=s.priceClick??10;
+    priceAuto=s.priceAuto??50;
+    priceCrit=s.priceCrit??100;
   }
 
-  atualizar();
+  update();
+  applySkin();
 
-  /* ===== ANIMAÇÃO DVD (AGORA GARANTIDA) ===== */
-
-  let imgs = [
-    { el: document.getElementById("img1"), x: 100, y: 100, dx: 2, dy: 2 },
-    { el: document.getElementById("img2"), x: 300, y: 200, dx: -2, dy: 2 },
-    { el: document.getElementById("img3"), x: 500, y: 150, dx: 2, dy: -2 }
+  /* ===== FUNDO ===== */
+  let imgs=[
+    {el:bg1,x:100,y:100,dx:2,dy:2},
+    {el:bg2,x:300,y:200,dx:-2,dy:2},
+    {el:bg3,x:500,y:150,dx:2,dy:-2}
   ];
 
-  function animar() {
-    let w = window.innerWidth;
-    let h = window.innerHeight;
+  function anim(){
+    let w=innerWidth,h=innerHeight;
 
-    imgs.forEach(i => {
-      i.x += i.dx;
-      i.y += i.dy;
+    imgs.forEach(i=>{
+      i.x+=i.dx;i.y+=i.dy;
 
-      if (i.x <= 0 || i.x >= w - 160) i.dx *= -1;
-      if (i.y <= 0 || i.y >= h - 160) i.dy *= -1;
+      if(i.x<=0||i.x>=w-140)i.dx*=-1;
+      if(i.y<=0||i.y>=h-140)i.dy*=-1;
 
-      i.el.style.left = i.x + "px";
-      i.el.style.top = i.y + "px";
+      i.el.style.left=i.x+"px";
+      i.el.style.top=i.y+"px";
     });
 
-    requestAnimationFrame(animar);
+    requestAnimationFrame(anim);
   }
 
-  animar();
+  anim();
 };
 
 </script>
+
+</body>
+</html>

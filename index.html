@@ -1,97 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pro Clicker Game</title>
+
+<!-- PWA CONFIG -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111">
+
+<style>
+body {
+  margin: 0;
+  background: #0f0f0f;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* BOTÕES */
+button {
+  padding: 10px 14px;
+  margin: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* CAIXAS */
+.box {
+  display: inline-block;
+  border: 1px solid #444;
+  padding: 10px;
+  margin: 10px;
+  width: 260px;
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+
+/* FUNDO */
+.bg {
+  position: fixed;
+  width: 140px;
+  opacity: 0.3;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* PARTÍCULAS */
+.particle {
+  position: fixed;
+  color: gold;
+  font-size: 16px;
+  pointer-events: none;
+  animation: floatUp 1s forwards;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-80px); opacity: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- FUNDO -->
+<img src="img1.jpeg" class="bg" id="bg1">
+<img src="img2.jpeg" class="bg" id="bg2">
+<img src="img3.jpeg" class="bg" id="bg3">
+
+<h1>⚡ Pro Clicker Mobile</h1>
+
+<div class="box">
+  <h2 id="coins">Moedas: 0</h2>
+  <h3 id="level">Nível: 1</h3>
+  <h3 id="xp">XP: 0 / 100</h3>
+</div>
+
+<div class="box">
+  <h3 id="click">Clique: +1</h3>
+  <h3 id="crit">Crítico: 10%</h3>
+  <button onclick="clickGame(event)">CLICAR</button>
+</div>
+
+<div class="box">
+  <h3>Upgrades</h3>
+  <button onclick="upClick()">+ Clique</button>
+  <button onclick="upAuto()">Auto</button>
+  <button onclick="upCrit()">Crítico</button>
+</div>
+
+<div class="box">
+  <h3>🏪 Loja</h3>
+  <button onclick="buySkin('default')">Normal</button>
+  <button onclick="buySkin('gold')">Gold - 100</button>
+  <button onclick="buySkin('neon')">Neon - 250</button>
+  <p id="skinText">Skin: Normal</p>
+</div>
+
 <script>
 
-let moedas = 0;
-let valorClique = 1;
+/* ===== APP MODE (tela cheia celular) ===== */
+document.addEventListener("click", () => {
+  if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen();
+  }
+}, { once: true });
+
+/* ===== VARIÁVEIS ===== */
+let coins = 0;
+let click = 1;
 let auto = 0;
-let criticoChance = 0.1;
+let crit = 0.1;
 
-let custoClique = 10;
-let custoAuto = 50;
-let custoCritico = 100;
-
+let level = 1;
 let xp = 0;
-let nivel = 1;
 let xpMax = 100;
 
-/* ===== JOGO ===== */
-function clicar() {
-  let ganho = valorClique;
+let skin = "default";
 
-  if (Math.random() < criticoChance) {
-    ganho *= 2;
-  }
+/* ===== CLICK ===== */
+function clickGame(e) {
+  let gain = click;
 
-  moedas += ganho;
-  xp += ganho;
+  if (Math.random() < crit) gain *= 2;
 
-  verificarNivel();
-  atualizar();
+  coins += gain;
+  xp += gain;
+
+  showParticle(e.clientX, e.clientY, "+" + gain);
+
+  levelUp();
+  update();
 }
 
-function upgradeClique() {
-  if (moedas >= custoClique) {
-    moedas -= custoClique;
-    valorClique++;
-    custoClique = Math.floor(custoClique * 1.5);
-    atualizar();
-  }
+/* ===== PARTÍCULAS ===== */
+function showParticle(x, y, text) {
+  let p = document.createElement("div");
+  p.className = "particle";
+  p.innerText = text;
+  p.style.left = x + "px";
+  p.style.top = y + "px";
+  document.body.appendChild(p);
+
+  setTimeout(() => p.remove(), 1000);
 }
 
-function upgradeAuto() {
-  if (moedas >= custoAuto) {
-    moedas -= custoAuto;
-    auto++;
-    custoAuto = Math.floor(custoAuto * 1.7);
-    atualizar();
-  }
-}
+/* ===== UPGRADES ===== */
+function upClick() { if (coins >= 10) { coins -= 10; click++; update(); } }
+function upAuto() { if (coins >= 50) { coins -= 50; auto++; update(); } }
+function upCrit() { if (coins >= 100) { coins -= 100; crit += 0.05; update(); } }
 
-function upgradeCritico() {
-  if (moedas >= custoCritico) {
-    moedas -= custoCritico;
-    criticoChance += 0.05;
-    custoCritico = Math.floor(custoCritico * 2);
-    atualizar();
-  }
-}
-
-function verificarNivel() {
+/* ===== LEVEL ===== */
+function levelUp() {
   if (xp >= xpMax) {
     xp -= xpMax;
-    nivel++;
-    xpMax = Math.floor(xpMax * 1.5);
-    valorClique++;
-    moedas += 50;
+    level++;
+    xpMax = Math.floor(xpMax * 1.4);
+    click++;
+    coins += 20;
   }
 }
 
-function atualizar() {
-  document.getElementById("moedas").innerText = "Moedas: " + moedas;
-  document.getElementById("valor").innerText = "Clique: +" + valorClique;
-  document.getElementById("critico").innerText = "Crítico: " + Math.floor(criticoChance * 100) + "%";
+/* ===== LOJA ===== */
+function buySkin(type) {
+  if (type === "gold" && coins >= 100) {
+    coins -= 100;
+    skin = "gold";
+  }
 
-  document.getElementById("custoClique").innerText = "Custo: " + custoClique;
-  document.getElementById("custoAuto").innerText = "Custo: " + custoAuto;
-  document.getElementById("custoCritico").innerText = "Custo: " + custoCritico;
+  if (type === "neon" && coins >= 250) {
+    coins -= 250;
+    skin = "neon";
+  }
 
-  document.getElementById("xp").innerText = "XP: " + xp + " / " + xpMax;
-  document.getElementById("nivel").innerText = "Nível: " + nivel;
+  if (type === "default") skin = "default";
+
+  applySkin();
+  update();
+}
+
+function applySkin() {
+  let btns = document.querySelectorAll("button");
+
+  btns.forEach(b => b.classList.remove("gold","neon"));
+
+  if (skin === "gold") btns.forEach(b => b.classList.add("gold"));
+  if (skin === "neon") btns.forEach(b => b.classList.add("neon"));
+
+  document.getElementById("skinText").innerText = "Skin: " + skin;
 }
 
 /* ===== AUTO CLICK ===== */
 setInterval(() => {
-  moedas += auto;
+  coins += auto;
   xp += auto;
-  verificarNivel();
-  atualizar();
+  levelUp();
+  update();
 }, 1000);
+
+/* ===== UPDATE ===== */
+function update() {
+  document.getElementById("coins").innerText = "Moedas: " + coins;
+  document.getElementById("click").innerText = "Clique: +" + click;
+  document.getElementById("crit").innerText = "Crítico: " + Math.floor(crit*100) + "%";
+  document.getElementById("level").innerText = "Nível: " + level;
+  document.getElementById("xp").innerText = "XP: " + xp + " / " + xpMax;
+}
 
 /* ===== SAVE ===== */
 setInterval(() => {
   localStorage.setItem("save", JSON.stringify({
-    moedas, valorClique, auto, criticoChance,
-    custoClique, custoAuto, custoCritico,
-    xp, nivel, xpMax
+    coins, click, auto, crit,
+    level, xp, xpMax, skin
   }));
 }, 2000);
 
@@ -101,29 +228,27 @@ window.onload = () => {
   let save = JSON.parse(localStorage.getItem("save"));
 
   if (save) {
-    moedas = save.moedas;
-    valorClique = save.valorClique;
+    coins = save.coins;
+    click = save.click;
     auto = save.auto;
-    criticoChance = save.criticoChance;
-    custoClique = save.custoClique;
-    custoAuto = save.custoAuto;
-    custoCritico = save.custoCritico;
+    crit = save.crit;
+    level = save.level;
     xp = save.xp;
-    nivel = save.nivel;
     xpMax = save.xpMax;
+    skin = save.skin;
   }
 
-  atualizar();
+  update();
+  applySkin();
 
-  /* ===== ANIMAÇÃO DVD (AGORA GARANTIDA) ===== */
-
+  /* ===== FUNDO DVD ===== */
   let imgs = [
-    { el: document.getElementById("img1"), x: 100, y: 100, dx: 2, dy: 2 },
-    { el: document.getElementById("img2"), x: 300, y: 200, dx: -2, dy: 2 },
-    { el: document.getElementById("img3"), x: 500, y: 150, dx: 2, dy: -2 }
+    { el: document.getElementById("bg1"), x: 100, y: 100, dx: 2, dy: 2 },
+    { el: document.getElementById("bg2"), x: 300, y: 200, dx: -2, dy: 2 },
+    { el: document.getElementById("bg3"), x: 500, y: 150, dx: 2, dy: -2 }
   ];
 
-  function animar() {
+  function animate() {
     let w = window.innerWidth;
     let h = window.innerHeight;
 
@@ -131,17 +256,20 @@ window.onload = () => {
       i.x += i.dx;
       i.y += i.dy;
 
-      if (i.x <= 0 || i.x >= w - 160) i.dx *= -1;
-      if (i.y <= 0 || i.y >= h - 160) i.dy *= -1;
+      if (i.x <= 0 || i.x >= w - 140) i.dx *= -1;
+      if (i.y <= 0 || i.y >= h - 140) i.dy *= -1;
 
       i.el.style.left = i.x + "px";
       i.el.style.top = i.y + "px";
     });
 
-    requestAnimationFrame(animar);
+    requestAnimationFrame(animate);
   }
 
-  animar();
+  animate();
 };
 
 </script>
+
+</body>
+</html>

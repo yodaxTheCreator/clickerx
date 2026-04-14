@@ -9,6 +9,7 @@ body {
   color: white;
   text-align: center;
   font-family: Arial;
+  overflow: hidden;
 }
 
 /* BOTÕES */
@@ -28,37 +29,23 @@ button {
   width: 250px;
 }
 
-/* IMAGENS DE FUNDO */
-.bg1, .bg2, .bg3 {
+/* IMAGENS ANIMADAS */
+.bg {
   position: fixed;
-  width: 100px;
-  opacity: 0.3;
+  width: 160px;
+  opacity: 0.6;
   z-index: -1;
-}
-
-.bg1 {
-  top: 50px;
-  left: 50px;
-}
-
-.bg2 {
-  top: 200px;
-  right: 100px;
-}
-
-.bg3 {
-  bottom: 50px;
-  left: 200px;
+  pointer-events: none;
 }
 </style>
 
 </head>
 <body>
 
-<!-- IMAGENS (SEM PASTA) -->
-<img src="img1.jpeg" class="bg1">
-<img src="img2.jpeg" class="bg2">
-<img src="img3.jpeg" class="bg3">
+<!-- IMAGENS -->
+<img src="img1.jpeg" class="bg" id="img1">
+<img src="img2.jpeg" class="bg" id="img2">
+<img src="img3.jpeg" class="bg" id="img3">
 
 <h1>🔥 Clicker Game</h1>
 
@@ -102,11 +89,12 @@ let xp = 0;
 let nivel = 1;
 let xpMax = 100;
 
+/* ===== CLICK ===== */
 function clicar() {
   let ganho = valorClique;
 
   if (Math.random() < criticoChance) {
-    ganho = ganho * 2;
+    ganho *= 2;
   }
 
   moedas += ganho;
@@ -116,6 +104,7 @@ function clicar() {
   atualizar();
 }
 
+/* ===== UPGRADES ===== */
 function upgradeClique() {
   if (moedas >= custoClique) {
     moedas -= custoClique;
@@ -143,6 +132,7 @@ function upgradeCritico() {
   }
 }
 
+/* ===== AUTO CLICK ===== */
 setInterval(() => {
   moedas += auto;
   xp += auto;
@@ -150,9 +140,10 @@ setInterval(() => {
   atualizar();
 }, 1000);
 
+/* ===== NIVEL ===== */
 function verificarNivel() {
   if (xp >= xpMax) {
-    xp = xp - xpMax;
+    xp -= xpMax;
     nivel++;
     xpMax = Math.floor(xpMax * 1.5);
 
@@ -161,10 +152,11 @@ function verificarNivel() {
   }
 }
 
+/* ===== ATUALIZAR ===== */
 function atualizar() {
   document.getElementById("moedas").innerText = "Moedas: " + moedas;
   document.getElementById("valor").innerText = "Clique: +" + valorClique;
-  document.getElementById("critico").innerText = "Crítico: " + Math.floor(criticoChance*100) + "%";
+  document.getElementById("critico").innerText = "Crítico: " + Math.floor(criticoChance * 100) + "%";
 
   document.getElementById("custoClique").innerText = "Custo: " + custoClique;
   document.getElementById("custoAuto").innerText = "Custo: " + custoAuto;
@@ -174,6 +166,7 @@ function atualizar() {
   document.getElementById("nivel").innerText = "Nível: " + nivel;
 }
 
+/* ===== SALVAR ===== */
 setInterval(() => {
   localStorage.setItem("save", JSON.stringify({
     moedas, valorClique, auto, criticoChance,
@@ -182,6 +175,7 @@ setInterval(() => {
   }));
 }, 2000);
 
+/* ===== CARREGAR ===== */
 window.onload = () => {
   let save = JSON.parse(localStorage.getItem("save"));
 
@@ -200,6 +194,33 @@ window.onload = () => {
 
   atualizar();
 };
+
+/* ===== ANIMAÇÃO TIPO DVD ===== */
+let imgs = [
+  { el: document.getElementById("img1"), x: 100, y: 100, dx: 2, dy: 2 },
+  { el: document.getElementById("img2"), x: 300, y: 200, dx: -2, dy: 2 },
+  { el: document.getElementById("img3"), x: 500, y: 150, dx: 2, dy: -2 }
+];
+
+function animar() {
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+
+  imgs.forEach(i => {
+    i.x += i.dx;
+    i.y += i.dy;
+
+    if (i.x <= 0 || i.x >= w - 160) i.dx *= -1;
+    if (i.y <= 0 || i.y >= h - 160) i.dy *= -1;
+
+    i.el.style.left = i.x + "px";
+    i.el.style.top = i.y + "px";
+  });
+
+  requestAnimationFrame(animar);
+}
+
+animar();
 
 </script>
 

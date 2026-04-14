@@ -1,147 +1,311 @@
-<script>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Clicker PRO</title>
 
-let moedas = 0;
-let valorClique = 1;
-let auto = 0;
-let criticoChance = 0.1;
-
-let custoClique = 10;
-let custoAuto = 50;
-let custoCritico = 100;
-
-let xp = 0;
-let nivel = 1;
-let xpMax = 100;
-
-/* ===== JOGO ===== */
-function clicar() {
-  let ganho = valorClique;
-
-  if (Math.random() < criticoChance) {
-    ganho *= 2;
-  }
-
-  moedas += ganho;
-  xp += ganho;
-
-  verificarNivel();
-  atualizar();
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#0b0b0b,#1c1c1c);
+color:white;
+text-align:center;
+overflow:hidden;
 }
 
-function upgradeClique() {
-  if (moedas >= custoClique) {
-    moedas -= custoClique;
-    valorClique++;
-    custoClique = Math.floor(custoClique * 1.5);
-    atualizar();
-  }
+/* HUD estilo mobile */
+.panel{
+display:inline-block;
+background:#202020;
+padding:14px;
+margin:10px;
+border-radius:14px;
+width:320px;
+box-shadow:0 0 15px #000;
 }
 
-function upgradeAuto() {
-  if (moedas >= custoAuto) {
-    moedas -= custoAuto;
-    auto++;
-    custoAuto = Math.floor(custoAuto * 1.7);
-    atualizar();
-  }
+/* botões */
+button{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-weight:bold;
+transition:0.15s;
 }
 
-function upgradeCritico() {
-  if (moedas >= custoCritico) {
-    moedas -= custoCritico;
-    criticoChance += 0.05;
-    custoCritico = Math.floor(custoCritico * 2);
-    atualizar();
-  }
+button:hover{transform:scale(1.05);}
+button:active{transform:scale(0.95);}
+
+.click{background:#ff9800;}
+.up{background:#2196f3;color:white;}
+.shop{background:#4caf50;color:white;}
+.red{background:#e53935;color:white;}
+
+/* partículas */
+.particle{
+position:fixed;
+color:gold;
+font-weight:bold;
+animation:float 1s forwards;
+pointer-events:none;
 }
 
-function verificarNivel() {
-  if (xp >= xpMax) {
-    xp -= xpMax;
-    nivel++;
-    xpMax = Math.floor(xpMax * 1.5);
-    valorClique++;
-    moedas += 50;
-  }
+@keyframes float{
+0%{transform:translateY(0);opacity:1}
+100%{transform:translateY(-120px);opacity:0}
 }
 
-function atualizar() {
-  document.getElementById("moedas").innerText = "Moedas: " + moedas;
-  document.getElementById("valor").innerText = "Clique: +" + valorClique;
-  document.getElementById("critico").innerText = "Crítico: " + Math.floor(criticoChance * 100) + "%";
+/* ranking medalhas */
+.gold{color:gold;}
+.silver{color:silver;}
+.bronze{color:#cd7f32;}
 
-  document.getElementById("custoClique").innerText = "Custo: " + custoClique;
-  document.getElementById("custoAuto").innerText = "Custo: " + custoAuto;
-  document.getElementById("custoCritico").innerText = "Custo: " + custoCritico;
+/* cursor */
+body.hand{cursor:pointer;}
+body.cross{cursor:crosshair;}
+</style>
+</head>
 
-  document.getElementById("xp").innerText = "XP: " + xp + " / " + xpMax;
-  document.getElementById("nivel").innerText = "Nível: " + nivel;
-}
+<body>
 
-/* ===== AUTO CLICK ===== */
-setInterval(() => {
-  moedas += auto;
-  xp += auto;
-  verificarNivel();
-  atualizar();
-}, 1000);
+<h1>🎮 ULTIMATE CLICKER PRO</h1>
 
-/* ===== SAVE ===== */
-setInterval(() => {
-  localStorage.setItem("save", JSON.stringify({
-    moedas, valorClique, auto, criticoChance,
-    custoClique, custoAuto, custoCritico,
-    xp, nivel, xpMax
-  }));
-}, 2000);
+<div class="panel">
+<h2 id="coins">Coins: 0</h2>
+<h3 id="level">Level: 1</h3>
+<h3 id="xp">XP: 0 / 100</h3>
+</div>
 
-/* ===== LOAD ===== */
-window.onload = () => {
+<div class="panel">
+<button class="click" onclick="clickGame(event)">CLICK</button>
+<p id="crit">Crit: 10%</p>
+</div>
 
-  let save = JSON.parse(localStorage.getItem("save"));
+<div class="panel">
+<h3>UPGRADES</h3>
+<button class="up" onclick="buyClick()">Click +1 (10)</button>
+<button class="up" onclick="buyAuto()">Auto (50)</button>
+<button class="up" onclick="buyCrit()">Crit (100)</button>
+</div>
 
-  if (save) {
-    moedas = save.moedas;
-    valorClique = save.valorClique;
-    auto = save.auto;
-    criticoChance = save.criticoChance;
-    custoClique = save.custoClique;
-    custoAuto = save.custoAuto;
-    custoCritico = save.custoCritico;
-    xp = save.xp;
-    nivel = save.nivel;
-    xpMax = save.xpMax;
-  }
+<div class="panel">
+<h3>🏪 SHOP / INVENTÁRIO</h3>
+<button class="shop" onclick="buySkin('gold')">Skin Gold (100)</button>
+<button class="shop" onclick="buySkin('neon')">Skin Neon (250)</button>
+<button class="shop" onclick="equipSkin('gold')">Equip Gold</button>
+<button class="shop" onclick="equipSkin('neon')">Equip Neon</button>
+</div>
 
-  atualizar();
+<div class="panel">
+<h3>🔥 PRESTÍGIO</h3>
+<button class="red" onclick="prestige()">RESET + BONUS</button>
+<p id="prestigeText">Prestige: 0 (x1)</p>
+</div>
 
-  /* ===== ANIMAÇÃO DVD (AGORA GARANTIDA) ===== */
+<div class="panel">
+<h3>🏆 RANKING GLOBAL</h3>
+<div id="rank">Loading...</div>
+</div>
 
-  let imgs = [
-    { el: document.getElementById("img1"), x: 100, y: 100, dx: 2, dy: 2 },
-    { el: document.getElementById("img2"), x: 300, y: 200, dx: -2, dy: 2 },
-    { el: document.getElementById("img3"), x: 500, y: 150, dx: 2, dy: -2 }
-  ];
+<div class="panel">
+<h3>🎯 CONQUISTAS</h3>
+<p id="a1">❌ 100 coins</p>
+<p id="a2">❌ 1000 coins</p>
+<p id="a3">❌ Prestige 1</p>
+</div>
 
-  function animar() {
-    let w = window.innerWidth;
-    let h = window.innerHeight;
+<script type="module">
 
-    imgs.forEach(i => {
-      i.x += i.dx;
-      i.y += i.dy;
+/* ================= FIREBASE ================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
-      if (i.x <= 0 || i.x >= w - 160) i.dx *= -1;
-      if (i.y <= 0 || i.y >= h - 160) i.dy *= -1;
-
-      i.el.style.left = i.x + "px";
-      i.el.style.top = i.y + "px";
-    });
-
-    requestAnimationFrame(animar);
-  }
-
-  animar();
+const firebaseConfig = {
+  apiKey: "AIzaSyA8pMfTwb38FzbT1Fyi-3HVw9SvBHPr_pc",
+  authDomain: "clickerx-fea00.firebaseapp.com",
+  projectId: "clickerx-fea00",
+  storageBucket: "clickerx-fea00.firebasestorage.app",
+  messagingSenderId: "1058324120487",
+  appId: "1:1058324120487:web:fabdeca94b66eede6f2c82"
 };
 
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ================= PLAYER ================= */
+let name = localStorage.getItem("name");
+if(!name){
+name = prompt("Seu nome:");
+if(!name) name="Player";
+localStorage.setItem("name",name);
+}
+
+/* ================= VARIÁVEIS ================= */
+let coins=0;
+let click=1;
+let auto=0;
+let crit=0.1;
+let level=1;
+let xp=0;
+let xpMax=100;
+let prestige=0;
+let multiplier=1;
+
+let skin="default";
+
+/* ================= SONS ================= */
+let clickSound = new Audio("https://www.soundjay.com/buttons/sounds/button-16.mp3");
+let levelSound = new Audio("https://www.soundjay.com/buttons/sounds/button-09.mp3");
+let upgradeSound = new Audio("https://www.soundjay.com/buttons/sounds/button-4.mp3");
+
+/* ================= CLICK ================= */
+window.clickGame=function(e){
+
+let gain = click * multiplier;
+if(Math.random()<crit) gain*=2;
+
+coins+=gain;
+xp+=gain;
+
+clickSound.play();
+particle(e.clientX,e.clientY,"+"+gain);
+
+levelUp();
+achievements();
+update();
+}
+
+/* ================= PARTICLE ================= */
+function particle(x,y,t){
+let p=document.createElement("div");
+p.className="particle";
+p.innerText=t;
+p.style.left=x+"px";
+p.style.top=y+"px";
+document.body.appendChild(p);
+setTimeout(()=>p.remove(),1000);
+}
+
+/* ================= UPGRADES ================= */
+window.buyClick=function(){
+if(coins>=10){coins-=10;click++;upgradeSound.play();update();}
+}
+
+window.buyAuto=function(){
+if(coins>=50){coins-=50;auto++;upgradeSound.play();update();}
+}
+
+window.buyCrit=function(){
+if(coins>=100){coins-=100;crit+=0.05;update();}
+}
+
+/* ================= LEVEL ================= */
+function levelUp(){
+if(xp>=xpMax){
+xp-=xpMax;
+level++;
+xpMax*=1.4;
+click++;
+coins+=25;
+levelSound.play();
+}
+}
+
+/* ================= SKINS ================= */
+window.buySkin=function(type){
+if(type==="gold"&&coins>=100){coins-=100;skin="gold";}
+if(type==="neon"&&coins>=250){coins-=250;skin="neon";}
+update();
+}
+
+window.equipSkin=function(type){
+skin=type;
+update();
+}
+
+/* ================= PRESTIGE ================= */
+window.prestige=function(){
+if(level>=10){
+prestige++;
+coins=0;
+click=1;
+auto=0;
+crit=0.1;
+level=1;
+xp=0;
+xpMax=100;
+multiplier = 1 + prestige*0.5;
+update();
+}
+}
+
+/* ================= ACHIEVEMENTS ================= */
+let a1=false,a2=false,a3=false;
+
+function achievements(){
+if(coins>=100&&!a1){a1=true;document.getElementById("a1").innerText="✔ 100 coins";}
+if(coins>=1000&&!a2){a2=true;document.getElementById("a2").innerText="✔ 1000 coins";}
+if(prestige>=1&&!a3){a3=true;document.getElementById("a3").innerText="✔ Prestige 1";}
+}
+
+/* ================= UPDATE ================= */
+function update(){
+document.getElementById("coins").innerText="Coins: "+coins;
+document.getElementById("level").innerText="Level: "+level;
+document.getElementById("xp").innerText="XP: "+xp+" / "+xpMax;
+document.getElementById("crit").innerText="Crit: "+Math.floor(crit*100)+"%";
+document.getElementById("prestigeText").innerText="Prestige: "+prestige+" (x"+multiplier+")";
+achievements();
+}
+
+/* ================= AUTO CLICK ================= */
+setInterval(()=>{
+coins+=auto;
+xp+=auto;
+levelUp();
+update();
+},1000);
+
+/* ================= SAVE ================= */
+async function save(){
+await set(ref(db,"players/"+name),{
+name,
+coins,
+level,
+prestige
+});
+}
+setInterval(save,2000);
+
+/* ================= RANKING ================= */
+async function loadRank(){
+const snap = await get(child(ref(db),"players"));
+if(!snap.exists()) return;
+
+let data = snap.val();
+let list = Object.values(data);
+
+list.sort((a,b)=>b.coins-a.coins);
+list = list.slice(0,10);
+
+let html="";
+
+list.forEach((p,i)=>{
+let medal = i==0?"🥇":i==1?"🥈":i==2?"🥉":"";
+html+=`<div>${medal} ${i+1}. ${p.name} - ${p.coins}</div>`;
+});
+
+document.getElementById("rank").innerHTML=html;
+}
+
+setInterval(loadRank,3000);
+
+window.onload=update;
+
 </script>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Clicker Game</title>
+
+<style>
+body {
+  background: #111;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.box {
+  border: 2px solid white;
+  padding: 10px;
+  margin: 10px;
+  display: inline-block;
+  width: 250px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🔥 Clicker Game</h1>
+
+<div class="box">
+  <h2 id="moedas">Moedas: 0 💰</h2>
+  <h3 id="nivel">Nível: 1</h3>
+  <h3 id="xp">XP: 0 / 100</h3>
+</div>
+
+<div class="box">
+  <h3 id="valor">Clique: +1</h3>
+  <h3 id="critico">Crítico: 10%</h3>
+  <button onclick="clicar()">CLICAR</button>
+</div>
+
+<div class="box">
+  <h3>Upgrades</h3>
+  <button onclick="upgradeClique()">Upgrade Clique</button>
+  <p id="custoClique">Custo: 10</p>
+
+  <button onclick="upgradeAuto()">Auto Click</button>
+  <p id="custoAuto">Custo: 50</p>
+
+  <button onclick="upgradeCritico()">Crítico</button>
+  <p id="custoCritico">Custo: 100</p>
+</div>
+
+<script>
+
+// ===== VARIÁVEIS =====
+let moedas = 0;
+let valorClique = 1;
+let auto = 0;
+let criticoChance = 0.1;
+
+let custoClique = 10;
+let custoAuto = 50;
+let custoCritico = 100;
+
+let xp = 0;
+let nivel = 1;
+let xpMax = 100;
+
+// ===== CLICK =====
+function clicar() {
+  let ganho = valorClique;
+
+  // crítico
+  if (Math.random() < criticoChance) {
+    ganho = ganho * 2;
+  }
+
+  moedas += ganho;
+  xp += ganho;
+
+  verificarNivel();
+  atualizar();
+}
+
+// ===== UPGRADES =====
+function upgradeClique() {
+  if (moedas >= custoClique) {
+    moedas -= custoClique;
+    valorClique += 1;
+    custoClique = Math.floor(custoClique * 1.5);
+    atualizar();
+  }
+}
+
+function upgradeAuto() {
+  if (moedas >= custoAuto) {
+    moedas -= custoAuto;
+    auto += 1;
+    custoAuto = Math.floor(custoAuto * 1.7);
+    atualizar();
+  }
+}
+
+function upgradeCritico() {
+  if (moedas >= custoCritico) {
+    moedas -= custoCritico;
+    criticoChance += 0.05;
+    custoCritico = Math.floor(custoCritico * 2);
+    atualizar();
+  }
+}
+
+// ===== AUTO CLICK =====
+setInterval(() => {
+  moedas += auto;
+  xp += auto;
+  verificarNivel();
+  atualizar();
+}, 1000);
+
+// ===== NIVEL =====
+function verificarNivel() {
+  if (xp >= xpMax) {
+    xp = xp - xpMax;
+    nivel++;
+    xpMax = Math.floor(xpMax * 1.5);
+
+    // bônus ao subir nível
+    valorClique += 1;
+    moedas += 50;
+  }
+}
+
+// ===== ATUALIZAR TELA =====
+function atualizar() {
+  document.getElementById("moedas").innerText = "Moedas: " + moedas;
+  document.getElementById("valor").innerText = "Clique: +" + valorClique;
+  document.getElementById("critico").innerText = "Crítico: " + Math.floor(criticoChance*100) + "%";
+
+  document.getElementById("custoClique").innerText = "Custo: " + custoClique;
+  document.getElementById("custoAuto").innerText = "Custo: " + custoAuto;
+  document.getElementById("custoCritico").innerText = "Custo: " + custoCritico;
+
+  document.getElementById("xp").innerText = "XP: " + xp + " / " + xpMax;
+  document.getElementById("nivel").innerText = "Nível: " + nivel;
+}
+
+// ===== SALVAR =====
+setInterval(() => {
+  localStorage.setItem("save", JSON.stringify({
+    moedas, valorClique, auto, criticoChance,
+    custoClique, custoAuto, custoCritico,
+    xp, nivel, xpMax
+  }));
+}, 2000);
+
+// ===== CARREGAR =====
+window.onload = () => {
+  let save = JSON.parse(localStorage.getItem("save"));
+
+  if (save) {
+    moedas = save.moedas;
+    valorClique = save.valorClique;
+    auto = save.auto;
+    criticoChance = save.criticoChance;
+    custoClique = save.custoClique;
+    custoAuto = save.custoAuto;
+    custoCritico = save.custoCritico;
+    xp = save.xp;
+    nivel = save.nivel;
+    xpMax = save.xpMax;
+  }
+
+  atualizar();
+};
+
+</script>
+
+</body>
+</html>
